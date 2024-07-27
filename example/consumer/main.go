@@ -4,6 +4,7 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"time"
 
 	"github.com/labstack/echo/v4"
 )
@@ -24,6 +25,7 @@ func main() {
 			return c.String(http.StatusBadRequest, err.Error())
 		}
 
+		time.Sleep(5 * time.Second)
 		log.Printf("message read: %dB", len(msg))
 
 		return c.String(http.StatusOK, "OK")

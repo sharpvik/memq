@@ -19,7 +19,7 @@ func (s *Service) StoreMessage(c echo.Context) error {
 		return codered.NewError(http.StatusBadRequest, err).Respond(c)
 	}
 
-	s.EnqueueMessage(msg)
+	s.queue.Enqueue(msg)
 
 	received := fmt.Sprintf("received: %dB", len(msg))
 	log.Println(received)

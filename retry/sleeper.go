@@ -1,6 +1,10 @@
 package retry
 
-import "time"
+import (
+	"log"
+	"math"
+	"time"
+)
 
 type Sleeper struct {
 	count    uint
@@ -24,9 +28,20 @@ func (s *Sleeper) Reset() {
 }
 
 func (s *Sleeper) Sleep() {
-	time.Sleep(s.BackoffDuration())
+	if backoff := s.BackoffDuration(); backoff != 0 {
+		log.Printf("backoff: %v", backoff)
+		time.Sleep(backoff)
+	}
 }
 
+// Geometric progression formula: a_n = ar^(n-1)
+// a = 1
+// n = count
+// r = multiple
 func (s *Sleeper) BackoffDuration() time.Duration {
-	return min(time.Second*time.Duration(s.count*s.multiple), s.cap)
+	a := 1.0
+	n := float64(s.count)
+	r := float64(s.multiple)
+	an := uint(a * math.Pow(r, n-1))
+	return min(time.Second*time.Duration(an), s.cap)
 }

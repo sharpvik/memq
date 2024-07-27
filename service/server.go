@@ -18,10 +18,7 @@ func (s *Server) Start(addr string) error {
 func (s *Service) Server(auth *Auth) *Server {
 	e := echo.New()
 
-	e.Use(
-		middleware.Recover(),
-		middleware.Logger(),
-	)
+	e.Use(middleware.Recover())
 
 	e.GET("/health", Health)
 	e.POST("/msg", s.StoreMessage, auth.Middleware())
