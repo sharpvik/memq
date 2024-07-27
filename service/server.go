@@ -2,15 +2,29 @@ package service
 
 import (
 	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v4/middleware"
 )
 
-func Server() *echo.Echo {
+type Server struct {
+	*Service
+	*echo.Echo
+}
+
+func (s *Server) Start(addr string) error {
+	go s.Service.ForwardMessages()
+	return s.Echo.Start(addr)
+}
+
+func (s *Service) Server() *Server {
 	e := echo.New()
-	s := New()
+
+	e.Use(middleware.Logger())
 
 	e.GET("/health", Health)
-	e.POST("/msg", s.SendMessage)
-	e.PUT("/sub/:url", s.Subscribe)
+	e.POST("/msg", s.StoreMessage)
 
-	return e
+	return &Server{
+		Service: s,
+		Echo:    e,
+	}
 }

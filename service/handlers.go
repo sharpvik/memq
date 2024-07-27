@@ -3,8 +3,8 @@ package service
 import (
 	"fmt"
 	"io"
+	"log"
 	"net/http"
-	"net/url"
 
 	"github.com/labstack/echo/v4"
 	"github.com/sharpvik/memq/codered"
@@ -13,26 +13,15 @@ import (
 
 func Health(c echo.Context) error { return c.String(http.StatusOK, "OK") }
 
-func (s *Service) SendMessage(c echo.Context) error {
+func (s *Service) StoreMessage(c echo.Context) error {
 	msg, err := io.ReadAll(c.Request().Body)
 	if err != nil {
 		return codered.NewError(http.StatusBadRequest, err).Respond(c)
 	}
 
-	s.Enqueue(msg)
+	s.EnqueueMessage(msg)
 
-	return response.New(fmt.Sprintf("received: %dB", len(msg))).Respond(c)
-}
-
-func (s *Service) Subscribe(c echo.Context) error {
-	rawSubscriberURL := c.Param("url")
-	if _, err := url.Parse(rawSubscriberURL); err != nil {
-		return codered.NewError(http.StatusBadRequest, err).Respond(c)
-	}
-
-	s.SetSubscriber(rawSubscriberURL)
-
-	return response.New(
-		fmt.Sprintf("subscriber set: %s", rawSubscriberURL),
-	).Respond(c)
+	received := fmt.Sprintf("received: %dB", len(msg))
+	log.Println(received)
+	return response.New(received).Respond(c)
 }

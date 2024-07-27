@@ -1,33 +1,47 @@
 package service
 
 import (
-	"sync"
+	"bytes"
+	"log"
+	"net/http"
+	"time"
 
-	"github.com/zyedidia/generic/queue"
+	"github.com/sharpvik/memq/retry"
 )
 
 type Message = []byte
 
 type Service struct {
-	mutex      sync.RWMutex
-	queue      *queue.Queue[Message]
+	queue      chan Message
 	subscriber string
 }
 
-func New() *Service {
+func New(cap uint, subscriber string) *Service {
 	return &Service{
-		queue: queue.New[Message](),
+		queue:      make(chan Message, cap),
+		subscriber: subscriber,
 	}
 }
 
-func (s *Service) Enqueue(msg Message) {
-	s.mutex.Lock()
-	defer s.mutex.Unlock()
-	s.queue.Enqueue(msg)
+func (s *Service) EnqueueMessage(msg Message) {
+	s.queue <- msg
 }
 
-func (s *Service) SetSubscriber(subscriber string) {
-	s.mutex.Lock()
-	defer s.mutex.Unlock()
-	s.subscriber = subscriber
+func (s *Service) ForwardMessages() {
+	log.Println("forwarder started")
+	for sleeper := retry.NewSleeper(2, time.Minute); ; sleeper.Sleep() {
+		if _, err := s.SendMessage(); err != nil {
+			sleeper.Failed()
+		}
+	}
+}
+
+func (s *Service) SendMessage() (*http.Response, error) {
+	msg := <-s.queue
+	log.Printf("sending: %dB", len(msg))
+	return http.Post(
+		s.subscriber,
+		"application/octet-stream",
+		bytes.NewReader(msg),
+	)
 }
