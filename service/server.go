@@ -15,13 +15,16 @@ func (s *Server) Start(addr string) error {
 	return s.Echo.Start(addr)
 }
 
-func (s *Service) Server() *Server {
+func (s *Service) Server(auth *Auth) *Server {
 	e := echo.New()
 
-	e.Use(middleware.Logger())
+	e.Use(
+		middleware.Recover(),
+		middleware.Logger(),
+	)
 
 	e.GET("/health", Health)
-	e.POST("/msg", s.StoreMessage)
+	e.POST("/msg", s.StoreMessage, auth.Middleware())
 
 	return &Server{
 		Service: s,

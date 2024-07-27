@@ -11,6 +11,7 @@ import (
 
 var (
 	sub = env.MustGet("SUB")
+	key = env.MustGet("KEY")
 
 	addr = env.GetOr("ADDR", "localhost:5359")
 	qcap = env.GetOr("QCAP", "1024")
@@ -24,7 +25,7 @@ func main() {
 
 	if err := service.
 		New(uint(qcapU64), sub).
-		Server().
+		Server(service.NewAuth(key)).
 		Start(addr); err != http.ErrServerClosed {
 		log.Println(err)
 	}

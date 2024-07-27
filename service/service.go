@@ -31,7 +31,9 @@ func (s *Service) ForwardMessages() {
 	log.Println("forwarder started")
 	for sleeper := retry.NewSleeper(2, time.Minute); ; sleeper.Sleep() {
 		if _, err := s.SendMessage(); err != nil {
+			log.Printf("failed to send message: %s", err)
 			sleeper.Failed()
+			log.Printf("backoff: %v", sleeper.BackoffDuration())
 		}
 	}
 }
