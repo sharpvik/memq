@@ -16,5 +16,5 @@ Should be passed as env vars.
 SUB  = https://api.example.com/msg  # consumer's address
 KEY  = your_api_key                 # authentication token
 ADDR = localhost:5359               # local binding address
-QCAP = 1024                         # queue capaciyu
+QCAP = 1024                         # queue capacity
 ```
