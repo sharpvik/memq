@@ -10,7 +10,10 @@ import (
 	"github.com/sharpvik/memq/retry"
 )
 
-type Message = []byte
+type Message struct {
+	contentType string
+	content     []byte
+}
 
 type Service struct {
 	queue      *queue.Queue[Message]
@@ -35,11 +38,11 @@ func (s *Service) ForwardMessages() {
 
 func (s *Service) SendMessage() (*http.Response, error) {
 	msg := s.queue.Peek()
-	log.Printf("sending: %dB", len(msg))
+	log.Printf("sending: %dB (%s)", len(msg.content), msg.contentType)
 	return http.Post(
 		s.subscriber,
-		"application/octet-stream",
-		bytes.NewReader(msg),
+		msg.contentType,
+		bytes.NewReader(msg.content),
 	)
 }
 
